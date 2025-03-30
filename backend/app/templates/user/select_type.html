@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Выбор типа преобразования | {{ settings.APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-tasks"></i> Выбор типа преобразования</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5>Файл успешно загружен!</h5>
+                                <p class="mb-0">
+                                    Видеофайл <strong>{{ transcription.original_filename }}</strong> был успешно загружен.
+                                    Теперь выберите, как вы хотите преобразовать этот файл.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form action="/transcriptions/select-type/{{ transcription.id }}" method="post" class="mt-4">
+                        <div class="mb-4">
+                            <h5>Выберите тип преобразования:</h5>
+
+                            <div class="form-check card p-3 mb-3 border-primary">
+                                <input class="form-check-input" type="radio" name="transcription_type" id="type_summary" value="summary" checked>
+                                <label class="form-check-label" for="type_summary">
+                                    <div class="ms-2">
+                                        <h6 class="mb-1">Краткое содержание встречи</h6>
+                                        <p class="mb-0 text-muted">
+                                            Система создаст краткую выжимку из разговора, выделив ключевые моменты,
+                                            основные темы обсуждения и принятые решения.
+                                        </p>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="form-check card p-3 mb-3">
+                                <input class="form-check-input" type="radio" name="transcription_type" id="type_technical_spec" value="technical_spec">
+                                <label class="form-check-label" for="type_technical_spec">
+                                    <div class="ms-2">
+                                        <h6 class="mb-1">Техническое задание</h6>
+                                        <p class="mb-0 text-muted">
+                                            Система создаст структурированное техническое задание на основе обсуждения,
+                                            выделив требования, спецификации, сроки и ответственных.
+                                        </p>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="form-check card p-3 mb-3">
+                                <input class="form-check-input" type="radio" name="transcription_type" id="type_custom" value="custom">
+                                <label class="form-check-label" for="type_custom">
+                                    <div class="ms-2">
+                                        <h6 class="mb-1">Свой запрос</h6>
+                                        <p class="mb-0 text-muted">
+                                            Задайте системе собственный запрос для обработки текста разговора.
+                                        </p>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div id="custom_prompt_container" class="mb-3 mt-4 d-none">
+                                <label for="custom_prompt" class="form-label">Введите ваш запрос:</label>
+                                <textarea class="form-control" id="custom_prompt" name="custom_prompt" rows="4" placeholder="Например: Выдели все упоминания проектов и сгруппируй их по приоритету"></textarea>
+                                <div class="form-text">
+                                    Будьте конкретны в запросе, чтобы получить наиболее точный результат.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-play-circle"></i> Начать преобразование
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="text-muted">
+                        <small>
+                            <i class="fas fa-info-circle"></i>
+                            После начала преобразования вы можете закрыть страницу.
+                            Процесс будет выполняться в фоновом режиме, и вы получите уведомление о его завершении.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Toggle custom prompt textarea visibility
+        $('input[name="transcription_type"]').on('change', function() {
+            if ($(this).val() === 'custom') {
+                $('#custom_prompt_container').removeClass('d-none');
+                $('#custom_prompt').prop('required', true);
+            } else {
+                $('#custom_prompt_container').addClass('d-none');
+                $('#custom_prompt').prop('required', false);
+            }
+        });
+
+        // Highlight selected card
+        $('.form-check').on('click', function() {
+            $('.form-check').removeClass('border-primary');
+            $(this).addClass('border-primary');
+            $(this).find('input[type="radio"]').prop('checked', true).trigger('change');
+        });
+    });
+</script>
+{% endblock %}

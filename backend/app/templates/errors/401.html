@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Доступ запрещен | {{ settings.APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="mb-4">
+        <i class="fas fa-map-signs fa-5x text-muted"></i>
+    </div>
+    <h1 class="display-4">401</h1>
+    <h2>Доступ запрещен</h2>
+    <p class="lead text-muted mb-4">К сожалению, доступ запрещен. Вы не авторизованы.</p>
+    <a href="/" class="btn btn-primary">
+        <i class="fas fa-home"></i> Вернуться на главную
+    </a>
+</div>
+{% endblock %}

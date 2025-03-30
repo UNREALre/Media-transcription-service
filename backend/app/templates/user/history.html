@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}История преобразований | {{ settings.APP_NAME }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-badge {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+    .status-pending { background-color: #17a2b8; }
+    .status-extracting_audio { background-color: #6f42c1; }
+    .status-transcribing { background-color: #fd7e14; }
+    .status-processing_with_llm { background-color: #ffc107; }
+    .status-completed { background-color: #28a745; }
+    .status-failed { background-color: #dc3545; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>История преобразований</h1>
+        <a href="/transcriptions/new" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Новое преобразование
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if transcriptions %}
+                <div class="table-responsive">
+                    <table class="table table-hover" id="transcriptionsTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Статус</th>
+                                <th>Имя файла</th>
+                                <th>Тип</th>
+                                <th>Создано</th>
+                                <th>Завершено</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transcription in transcriptions %}
+                            <tr>
+                                <td>{{ transcription.id }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ transcription.status.value }}"></span>
+                                    {% set status_map = {
+                                        'pending': 'Ожидание',
+                                        'extracting_audio': 'Извлечение аудио',
+                                        'transcribing': 'Транскрибирование',
+                                        'processing_with_llm': 'Обработка ИИ',
+                                        'completed': 'Завершено',
+                                        'failed': 'Ошибка'
+                                    } %}
+                                    {{ status_map[transcription.status.value] }}
+                                </td>
+                                <td>{{ transcription.original_filename }}</td>
+                                <td>
+                                    {% if transcription.transcription_type.value == 'summary' %}
+                                        <span class="badge bg-info">Краткое содержание</span>
+                                    {% elif transcription.transcription_type.value == 'technical_spec' %}
+                                        <span class="badge bg-success">Техническое задание</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Пользовательский</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ transcription.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                <td>
+                                    {% if transcription.completed_at %}
+                                        {{ transcription.completed_at.strftime('%d.%m.%Y %H:%M') }}
+                                    {% elif transcription.status.value == 'failed' %}
+                                        <span class="text-danger">Ошибка</span>
+                                    {% else %}
+                                        <span class="text-muted">В процессе</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="/transcriptions/view/{{ transcription.id }}"
+                                           class="btn btn-sm {% if transcription.status.value == 'completed' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                                           {% if transcription.status.value != 'completed' %}disabled{% endif %}>
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-info refresh-status-btn"
+                                                data-id="{{ transcription.id }}" title="Обновить статус"
+                                                {% if transcription.status.value == 'completed' or transcription.status.value == 'failed' %}disabled{% endif %}>
+                                            <i class="fas fa-sync-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-history fa-4x text-muted mb-3"></i>
+                    <h5>История пуста</h5>
+                    <p class="text-muted">
+                        У вас еще нет истории преобразований. Создайте новое преобразование для начала работы.
+                    </p>
+                    <a href="/transcriptions/new" class="btn btn-primary mt-3">
+                        <i class="fas fa-plus"></i> Новое преобразование
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Пояснения по статусам</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex align-items-center">
+                            <span class="status-badge status-pending"></span>
+                            <strong>Ожидание</strong>
+                            <span class="ms-auto text-muted">Файл загружен, ожидает обработки</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <span class="status-badge status-extracting_audio"></span>
+                            <strong>Извлечение аудио</strong>
+                            <span class="ms-auto text-muted">Идет извлечение аудио из видео</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <span class="status-badge status-transcribing"></span>
+                            <strong>Транскрибирование</strong>
+                            <span class="ms-auto text-muted">Преобразование аудио в текст</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex align-items-center">
+                            <span class="status-badge status-processing_with_llm"></span>
+                            <strong>Обработка ИИ</strong>
+                            <span class="ms-auto text-muted">Обработка текста ИИ</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <span class="status-badge status-completed"></span>
+                            <strong>Завершено</strong>
+                            <span class="ms-auto text-muted">Преобразование успешно завершено</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <span class="status-badge status-failed"></span>
+                            <strong>Ошибка</strong>
+                            <span class="ms-auto text-muted">Произошла ошибка при обработке</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Auto-refresh for in-progress transcriptions
+        function refreshInProgressStatus() {
+            $('.refresh-status-btn:not([disabled])').each(function() {
+                updateTranscriptionStatus($(this).data('id'));
+            });
+        }
+
+        // Check status every 30 seconds
+        setInterval(refreshInProgressStatus, 30000);
+
+        // Manual refresh button
+        $('.refresh-status-btn').on('click', function() {
+            const id = $(this).data('id');
+            const button = $(this);
+
+            button.html('<i class="fas fa-spinner fa-spin"></i>');
+            button.prop('disabled', true);
+
+            updateTranscriptionStatus(id, function() {
+                button.html('<i class="fas fa-sync-alt"></i>');
+                button.prop('disabled', false);
+            });
+        });
+
+        function getStatusInRussian(status) {
+            const statusMap = {
+                'pending': 'Ожидание',
+                'extracting_audio': 'Извлечение аудио',
+                'transcribing': 'Транскрибирование',
+                'processing_with_llm': 'Обработка ИИ',
+                'completed': 'Завершено',
+                'failed': 'Ошибка'
+            };
+
+            return statusMap[status] || status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function updateRowWithResponse(row, response) {
+            // Update status badge
+            row.find('td:eq(1)').html(`
+                <span class="status-badge status-${response.status}"></span>
+                ${getStatusInRussian(response.status)}
+            `);
+
+            // Update completed time
+            if (response.completed_at) {
+                row.find('td:eq(5)').text(new Date(response.completed_at).toLocaleString('ru'));
+            } else if (response.status === 'failed') {
+                row.find('td:eq(5)').html('<span class="text-danger">Ошибка</span>');
+            }
+
+            // Update action buttons
+            if (response.status === 'completed') {
+                row.find('.btn-outline-secondary').removeClass('btn-outline-secondary').addClass('btn-primary').prop('disabled', false);
+                row.find('.refresh-status-btn').prop('disabled', true);
+            } else if (response.status === 'failed') {
+                row.find('.refresh-status-btn').prop('disabled', true);
+            }
+        }
+
+        function updateTranscriptionStatus(id, callback) {
+            $.ajax({
+                url: `/api/v1/transcriptions/${id}`,
+                type: 'GET',
+                success: function(response) {
+                    // Более надежный способ найти нужную строку
+                    const row = $(`tr:has(button[data-id="${id}"])`);
+
+                    // Если строка не найдена, пробуем другой способ
+                    if (row.length === 0) {
+                        console.log("Row not found with first method, trying alternative");
+                        // Альтернативный поиск
+                        $('table#transcriptionsTable tbody tr').each(function() {
+                            if ($(this).find('button[data-id]').data('id') == id) {
+                                updateRowWithResponse($(this), response);
+                            }
+                        });
+                    } else {
+                        updateRowWithResponse(row, response);
+                    }
+
+                    if (callback) callback();
+                },
+                error: function() {
+                    if (callback) callback();
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

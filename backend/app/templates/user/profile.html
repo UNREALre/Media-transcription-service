@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль | {{ settings.APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Информация профиля</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="rounded-circle bg-light d-inline-flex justify-content-center align-items-center mb-3" style="width: 100px; height: 100px;">
+                            <i class="fas fa-user fa-3x text-primary"></i>
+                        </div>
+                        <h4>{{ current_user.first_name or "" }} {{ current_user.last_name or "" }}</h4>
+                        <span class="badge {% if current_user.is_admin %}bg-danger{% else %}bg-info{% endif %}">
+                            {% if current_user.is_admin %}Администратор{% else %}Пользователь{% endif %}
+                        </span>
+                    </div>
+
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Имя пользователя:</span>
+                            <strong>{{ current_user.username }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Email:</span>
+                            <strong>{{ current_user.email }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Статус:</span>
+                            <strong>{% if current_user.is_active %}
+                                <span class="text-success">Активен</span>
+                            {% else %}
+                                <span class="text-danger">Неактивен</span>
+                            {% endif %}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Дата регистрации:</span>
+                            <strong>{{ current_user.created_at.strftime('%d.%m.%Y') }}</strong>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-edit"></i> Редактировать профиль</h5>
+                </div>
+                <div class="card-body">
+                    <form id="profile-form">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Имя пользователя</label>
+                            <input type="text" class="form-control" id="username" name="username" value="{{ current_user.username }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="first_name" class="form-label">Имя</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" value="{{ current_user.first_name or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="last_name" class="form-label">Фамилия</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" value="{{ current_user.last_name or '' }}">
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Новый пароль</label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Оставьте пустым, чтобы не менять">
+                            <div class="form-text">Минимум 8 символов. Оставьте пустым, если не хотите менять пароль.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password_confirm" class="form-label">Подтверждение пароля</label>
+                            <input type="password" class="form-control" id="password_confirm" name="password_confirm" placeholder="Повторите новый пароль">
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary" id="save-profile-btn">
+                                <i class="fas fa-save"></i> Сохранить изменения
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-shield-alt"></i> Безопасность</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>Последний вход</h6>
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-clock"></i> {{ current_user.updated_at.strftime('%d.%m.%Y %H:%M') }}
+                        </p>
+                    </div>
+                    <div>
+                        <h6>Рекомендации по безопасности</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success"></i> Используйте сложные пароли, включающие буквы, цифры и символы
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success"></i> Периодически меняйте пароль
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle text-success"></i> Не используйте один и тот же пароль для разных сервисов
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Обработка отправки формы
+        $('#profile-form').on('submit', function(e) {
+            e.preventDefault();
+
+            // Проверка совпадения паролей
+            const password = $('#password').val();
+            const passwordConfirm = $('#password_confirm').val();
+
+            if (password && password !== passwordConfirm) {
+                alert('Пароли не совпадают!');
+                return;
+            }
+
+            // Собираем данные формы
+            const formData = {
+                username: $('#username').val(),
+                email: $('#email').val(),
+                first_name: $('#first_name').val(),
+                last_name: $('#last_name').val()
+            };
+
+            // Добавляем пароль, если он задан
+            if (password) {
+                formData.password = password;
+            }
+
+            // Отправляем запрос на обновление
+            $('#save-profile-btn').html('<i class="fas fa-spinner fa-spin"></i> Сохранение...').prop('disabled', true);
+
+            $.ajax({
+                url: '/api/v1/users/me',
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    $('#save-profile-btn').html('<i class="fas fa-check"></i> Сохранено!');
+
+                    // Сброс полей пароля
+                    $('#password').val('');
+                    $('#password_confirm').val('');
+
+                    // Оповещение пользователя
+                    setTimeout(function() {
+                        $('#save-profile-btn').html('<i class="fas fa-save"></i> Сохранить изменения').prop('disabled', false);
+                        alert('Профиль успешно обновлен!');
+                    }, 1500);
+                },
+                error: function(xhr) {
+                    $('#save-profile-btn').html('<i class="fas fa-save"></i> Сохранить изменения').prop('disabled', false);
+                    alert('Ошибка при обновлении профиля: ' + (xhr.responseJSON ? xhr.responseJSON.detail : 'Неизвестная ошибка'));
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

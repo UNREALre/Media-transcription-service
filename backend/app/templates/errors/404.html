@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Страница не найдена | {{ settings.APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="mb-4">
+        <i class="fas fa-map-signs fa-5x text-muted"></i>
+    </div>
+    <h1 class="display-4">404</h1>
+    <h2>Страница не найдена</h2>
+    <p class="lead text-muted mb-4">К сожалению, запрашиваемая страница не существует.</p>
+    <a href="/" class="btn btn-primary">
+        <i class="fas fa-home"></i> Вернуться на главную
+    </a>
+</div>
+{% endblock %}

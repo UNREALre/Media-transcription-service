@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Просмотр преобразования | {{ settings.APP_NAME }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .transcription-content {
+        white-space: pre-wrap;
+        font-size: 1rem;
+        line-height: 1.2;
+    }
+
+    .status-badge {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+    .status-pending { background-color: #17a2b8; }
+    .status-extracting_audio { background-color: #6f42c1; }
+    .status-transcribing { background-color: #fd7e14; }
+    .status-processing_with_llm { background-color: #ffc107; }
+    .status-completed { background-color: #28a745; }
+    .status-failed { background-color: #dc3545; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Просмотр преобразования</h1>
+        <a href="/transcriptions/history" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Назад к истории
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Информация</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>ID:</span>
+                            <strong>{{ transcription.id }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Файл:</span>
+                            <strong>{{ transcription.original_filename }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Статус:</span>
+                            <strong>
+                                <span class="status-badge status-{{ transcription.status.value }}"></span>
+                                {{ transcription.status.value|replace('_', ' ')|title }}
+                            </strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Тип:</span>
+                            <strong>
+                                {% if transcription.transcription_type.value == 'summary' %}
+                                    Краткое содержание
+                                {% elif transcription.transcription_type.value == 'technical_spec' %}
+                                    Техническое задание
+                                {% else %}
+                                    Пользовательский
+                                {% endif %}
+                            </strong>
+                        </li>
+                        {% if transcription.transcription_type.value == 'custom' and transcription.custom_prompt %}
+                        <li class="list-group-item">
+                            <span>Запрос:</span>
+                            <div class="mt-2 p-2 bg-light rounded">
+                                <small>{{ transcription.custom_prompt }}</small>
+                            </div>
+                        </li>
+                        {% endif %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Создано:</span>
+                            <strong>{{ transcription.created_at.strftime('%d.%m.%Y %H:%M') }}</strong>
+                        </li>
+                        {% if transcription.completed_at %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Завершено:</span>
+                            <strong>{{ transcription.completed_at.strftime('%d.%m.%Y %H:%M') }}</strong>
+                        </li>
+                        {% endif %}
+                    </ul>
+
+                    {% if transcription.status.value == 'completed' %}
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-outline-primary" id="copyBtn">
+                            <i class="fas fa-copy"></i> Копировать текст
+                        </button>
+                        <button class="btn btn-outline-success" id="downloadBtn">
+                            <i class="fas fa-download"></i> Сохранить как .txt
+                        </button>
+                    </div>
+                    {% elif transcription.status.value == 'failed' %}
+                    <div class="alert alert-danger mt-3">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Произошла ошибка</h6>
+                        <p class="mb-0">{{ transcription.error_message or 'Ошибка при обработке файла' }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <ul class="nav nav-tabs card-header-tabs" id="contentTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="processed-tab" data-bs-toggle="tab" data-bs-target="#processed"
+                                    type="button" role="tab" aria-controls="processed" aria-selected="true">
+                                Результат
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="raw-tab" data-bs-toggle="tab" data-bs-target="#raw"
+                                    type="button" role="tab" aria-controls="raw" aria-selected="false">
+                                Транскрипт
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="contentTabsContent">
+                        <div class="tab-pane fade show active" id="processed" role="tabpanel" aria-labelledby="processed-tab">
+                            {% if transcription.status.value == 'completed' and transcription.processed_text %}
+                                <div class="transcription-content" id="processedText">{{ processed_text_html|safe }}</div>
+                            {% elif transcription.status.value == 'failed' %}
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle"></i> Обработка не удалась из-за ошибки.
+                                </div>
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <div class="spinner-border text-primary mb-3" role="status">
+                                        <span class="visually-hidden">Загрузка...</span>
+                                    </div>
+                                    <h5>Обработка в процессе</h5>
+                                    <p class="text-muted">
+                                        Пожалуйста, подождите. Обработка файла может занять некоторое время в зависимости от размера видео.
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="tab-pane fade" id="raw" role="tabpanel" aria-labelledby="raw-tab">
+                            {% if transcription.raw_transcript %}
+                                <div class="transcription-content" id="rawText">{{ transcription.raw_transcript }}</div>
+                            {% elif transcription.status.value in ['pending', 'extracting_audio'] %}
+                                <div class="text-center py-5">
+                                    <div class="spinner-border text-primary mb-3" role="status">
+                                        <span class="visually-hidden">Загрузка...</span>
+                                    </div>
+                                    <h5>Транскрибирование не начато</h5>
+                                    <p class="text-muted">
+                                        Система еще не извлекла аудио или не начала транскрибирование.
+                                    </p>
+                                </div>
+                            {% elif transcription.status.value == 'failed' %}
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle"></i> Транскрибирование не удалось из-за ошибки.
+                                </div>
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <div class="spinner-border text-primary mb-3" role="status">
+                                        <span class="visually-hidden">Загрузка...</span>
+                                    </div>
+                                    <h5>Транскрибирование в процессе</h5>
+                                    <p class="text-muted">
+                                        Пожалуйста, подождите. Транскрибирование файла может занять некоторое время.
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Auto-refresh for in-progress transcriptions
+        function refreshStatus() {
+            const status = '{{ transcription.status.value }}';
+            if (status !== 'completed' && status !== 'failed') {
+                updateTranscriptionStatus();
+            }
+        }
+
+        // Check status every 10 seconds for in-progress transcriptions
+        const statusCheckInterval = setInterval(refreshStatus, 10000);
+
+        function updateTranscriptionStatus() {
+            $.ajax({
+                url: `/api/v1/transcriptions/{{ transcription.id }}`,
+                type: 'GET',
+                success: function(response) {
+                    // If status changed, reload page
+                    if (response.status !== '{{ transcription.status.value }}' ||
+                        (response.status === 'completed' && (!response.processed_text || !response.raw_transcript))) {
+                        window.location.reload();
+                    }
+
+                    // If completed or failed, stop checking
+                    if (response.status === 'completed' || response.status === 'failed') {
+                        clearInterval(statusCheckInterval);
+                    }
+                },
+                error: function() {
+                    // Handle error
+                }
+            });
+        }
+
+        // Copy button
+        $('#copyBtn').on('click', function() {
+            const text = $('#contentTabsContent .tab-pane.active .transcription-content').text();
+            navigator.clipboard.writeText(text).then(function() {
+                const originalText = $('#copyBtn').html();
+                $('#copyBtn').html('<i class="fas fa-check"></i> Скопировано!');
+                setTimeout(function() {
+                    $('#copyBtn').html(originalText);
+                }, 2000);
+            }, function() {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+
+                const originalText = $('#copyBtn').html();
+                $('#copyBtn').html('<i class="fas fa-check"></i> Скопировано!');
+                setTimeout(function() {
+                    $('#copyBtn').html(originalText);
+                }, 2000);
+            });
+        });
+
+        // Download button
+        $('#downloadBtn').on('click', function() {
+            const text = $('#contentTabsContent .tab-pane.active .transcription-content').text();
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+
+            const fileName = '{{ transcription.original_filename }}'.split('.')[0];
+            const tabId = $('#contentTabsContent .tab-pane.active').attr('id');
+            const fileType = tabId === 'processed' ? 'результат' : 'транскрипт';
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${fileName} - ${fileType}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    });
+</script>
+{% endblock %}

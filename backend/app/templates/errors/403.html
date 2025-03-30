@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Недостаточно прав | {{ settings.APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="mb-4">
+        <i class="fas fa-map-signs fa-5x text-muted"></i>
+    </div>
+    <h1 class="display-4">403</h1>
+    <h2>Недостаточно прав</h2>
+    <p class="lead text-muted mb-4">К сожалению, у вас недостаточно прав для просмотра данной страницы.</p>
+    <a href="/" class="btn btn-primary">
+        <i class="fas fa-home"></i> Вернуться на главную
+    </a>
+</div>
+{% endblock %}

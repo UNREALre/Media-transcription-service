@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}О проекте | {{ settings.APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h2>О проекте</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h4>Что такое {{ settings.APP_NAME }}?</h4>
+                            <p class="text-muted">
+                                {{ settings.APP_NAME }} - это современный сервис по преобразованию видеозаписей встреч и разговоров
+                                в структурированный текст с использованием технологий искусственного интеллекта.
+                            </p>
+                            <p>
+                                Наш сервис использует передовые технологии распознавания речи и обработки естественного языка,
+                                чтобы помочь вам быстро получить текстовые выжимки из видеозаписей встреч, совещаний,
+                                интервью или других разговоров.
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5>Ключевые возможности:</h5>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item bg-light">
+                                            <i class="fas fa-microphone text-primary"></i> Точное распознавание речи
+                                        </li>
+                                        <li class="list-group-item bg-light">
+                                            <i class="fas fa-brain text-primary"></i> Интеллектуальная обработка текста
+                                        </li>
+                                        <li class="list-group-item bg-light">
+                                            <i class="fas fa-file-alt text-primary"></i> Создание кратких выжимок
+                                        </li>
+                                        <li class="list-group-item bg-light">
+                                            <i class="fas fa-tasks text-primary"></i> Формирование технических заданий
+                                        </li>
+                                        <li class="list-group-item bg-light">
+                                            <i class="fas fa-cog text-primary"></i> Пользовательские запросы
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h4>Как это работает?</h4>
+                            <div class="row text-center">
+                                <div class="col-md-3 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="rounded-circle bg-primary p-3 d-inline-block mb-2 text-white">
+                                                <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                                            </div>
+                                            <h5>Шаг 1</h5>
+                                            <p>Загрузите видеофайл в систему через простой интерфейс.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="rounded-circle bg-info p-3 d-inline-block mb-2 text-white">
+                                                <i class="fas fa-headphones fa-2x"></i>
+                                            </div>
+                                            <h5>Шаг 2</h5>
+                                            <p>Система извлекает аудио и преобразует его в текст.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="rounded-circle bg-success p-3 d-inline-block mb-2 text-white">
+                                                <i class="fas fa-robot fa-2x"></i>
+                                            </div>
+                                            <h5>Шаг 3</h5>
+                                            <p>ИИ анализирует текст и создает структурированный документ.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="rounded-circle bg-warning p-3 d-inline-block mb-2 text-white">
+                                                <i class="fas fa-file-download fa-2x"></i>
+                                            </div>
+                                            <h5>Шаг 4</h5>
+                                            <p>Вы получаете готовый документ для дальнейшего использования.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Типы преобразования</h4>
+                            <div class="accordion" id="accordionTransformationTypes">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingSummary">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSummary" aria-expanded="true" aria-controls="collapseSummary">
+                                            Краткая выжимка
+                                        </button>
+                                    </h2>
+                                    <div id="collapseSummary" class="accordion-collapse collapse show" aria-labelledby="headingSummary" data-bs-parent="#accordionTransformationTypes">
+                                        <div class="accordion-body">
+                                            <p>
+                                                Этот тип преобразования создаёт краткое резюме разговора, выделяя ключевые моменты,
+                                                обсуждаемые темы и важные решения. Идеально подходит для быстрого ознакомления с
+                                                содержанием длинных совещаний или переговоров.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingTechnicalSpec">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTechnicalSpec" aria-expanded="false" aria-controls="collapseTechnicalSpec">
+                                            Техническое задание
+                                        </button>
+                                    </h2>
+                                    <div id="collapseTechnicalSpec" class="accordion-collapse collapse" aria-labelledby="headingTechnicalSpec" data-bs-parent="#accordionTransformationTypes">
+                                        <div class="accordion-body">
+                                            <p>
+                                                Преобразует разговор в структурированное техническое задание, выделяя требования,
+                                                спецификации, сроки и ответственных. Особенно полезно для проектных обсуждений
+                                                и встреч с клиентами.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingCustom">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCustom" aria-expanded="false" aria-controls="collapseCustom">
+                                            Пользовательский запрос
+                                        </button>
+                                    </h2>
+                                    <div id="collapseCustom" class="accordion-collapse collapse" aria-labelledby="headingCustom" data-bs-parent="#accordionTransformationTypes">
+                                        <div class="accordion-body">
+                                            <p>
+                                                Позволяет вам задать собственный запрос для обработки текста. Вы можете
+                                                попросить систему извлечь конкретную информацию, создать специфический формат
+                                                или выполнить другие задачи по вашему усмотрению.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Технологии</h4>
+                            <div class="card">
+                                <div class="card-body">
+                                    <p>
+                                        Наш сервис использует комбинацию передовых технологий для обеспечения
+                                        высокого качества преобразования:
+                                    </p>
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="flex-shrink-0">
+                                            <span class="badge bg-primary p-2">
+                                                <i class="fas fa-microphone fa-lg"></i>
+                                            </span>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="mb-0">OpenAI Whisper</h6>
+                                            <small class="text-muted">Современная система распознавания речи с высокой точностью</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="flex-shrink-0">
+                                            <span class="badge bg-success p-2">
+                                                <i class="fas fa-brain fa-lg"></i>
+                                            </span>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="mb-0">GPT/Gemma</h6>
+                                            <small class="text-muted">Языковые модели для интеллектуальной обработки текста</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="flex-shrink-0">
+                                            <span class="badge bg-info p-2">
+                                                <i class="fas fa-project-diagram fa-lg"></i>
+                                            </span>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="mb-0">LangChain</h6>
+                                            <small class="text-muted">Фреймворк для построения сложных цепочек обработки языка</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-shrink-0">
+                                            <span class="badge bg-warning p-2 text-dark">
+                                                <i class="fas fa-server fa-lg"></i>
+                                            </span>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="mb-0">Асинхронная обработка</h6>
+                                            <small class="text-muted">Эффективная обработка больших файлов в фоновом режиме</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
